@@ -93,14 +93,14 @@ class CAOController(QtCore.QThread):
         while self.run_thread_flag:
 
             start_time = time()
-            j1, j2, j3, j4, j5, j6, _ = self.arm_current_position.Value
-
-            self.j1_set__signal.emit(j1)
-            self.j2_set__signal.emit(j2)
-            self.j3_set__signal.emit(j3)
-            self.j4_set__signal.emit(j4)
-            self.j5_set__signal.emit(j5)
-            self.j6_set__signal.emit(j6)
+            # j1, j2, j3, j4, j5, j6, _ = self.arm_current_position.Value
+            #
+            # self.j1_set__signal.emit(j1)
+            # self.j2_set__signal.emit(j2)
+            # self.j3_set__signal.emit(j3)
+            # self.j4_set__signal.emit(j4)
+            # self.j5_set__signal.emit(j5)
+            # self.j6_set__signal.emit(j6)
 
             self.max_speed_label.setText(str(self.arm_speed_status.Value))
 

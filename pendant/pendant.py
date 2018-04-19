@@ -9,6 +9,7 @@ import signal
 import qdarkstyle
 
 from Framework.cao_controller import CAOController
+from Framework.cao_monitor import CAOMonitor
 
 #####################################
 # Global Variables
@@ -106,6 +107,7 @@ class GroundStation(QtCore.QObject):
 
         # ##### Instantiate Threaded Classes ######
         self.__add_thread("CAO Controller", CAOController(self.shared_objects))
+        self.__add_thread("CAO Monitor", CAOMonitor(self.shared_objects))
 
         self.connect_signals_and_slots_signal.emit()
         self.__connect_signals_to_slots()
