@@ -4,6 +4,9 @@
 
 #define LED_PIN 13
 
+//Code safeties
+#define SAFETY_PSI_MAX 15
+
 String input;
 
 void setup() {
@@ -15,13 +18,15 @@ void setup() {
   pinMode(PRESSURE_INPUT_PIN, INPUT);
 
   pinMode(VALVE_CONTROL_PIN, OUTPUT);
-  digitalWrite(VALVE_CONTROL_PIN, LOW);
+  digitalWrite(VALVE_CONTROL_PIN, HIGH);
 
   Serial.begin(9600);
 }
 
 void loop() {
   uint16_t targetPSI = 0;
+  float    currentPSI = 0;
+  uint8_t  shouldCompress = 0;
   
   if(Serial.available()){
     input = Serial.readStringUntil('\n');
@@ -33,11 +38,48 @@ void loop() {
       Serial.print("Target PSI: ");
       Serial.println(targetPSI);
 
+      if(targetPSI > SAFETY_PSI_MAX){
+        Serial.print("Target PSI too high, bounding to safety max of ");
+        Serial.println(SAFETY_PSI_MAX);
+      }
+
+      targetPSI = constrain(targetPSI, 0, SAFETY_PSI_MAX);
       
+      shouldCompress = 1;
+
+      //Start the compressor
+      digitalWrite(COMPRESSOR_CONTROL_PIN, HIGH);
+      digitalWrite(LED_PIN, HIGH);
+
+      while(shouldCompress){
+        currentPSI = readPressure();
+        if(currentPSI >= targetPSI){
+          shouldCompress = 0;
+        }
+        Serial.print("Current Pressure: ");
+        Serial.print(currentPSI);
+        Serial.print(" psi | Target Pressure: ");
+        Serial.print(targetPSI);
+        Serial.println(" psi");
+        delay(150);
+      }
+
+      //Stop the compressor
+      digitalWrite(COMPRESSOR_CONTROL_PIN, LOW);
+      digitalWrite(LED_PIN, LOW);
     }
     
   }
 
+  delay(150);  // ¯\_(ツ)_/¯
+
+  Serial.print("Current Pressure: ");
+  Serial.print(readPressure());
+  Serial.println(" psi");
+  Serial.flush();
+
+
+  /*
   //Turn off the compressor
   digitalWrite(COMPRESSOR_CONTROL_PIN, LOW);
   digitalWrite(LED_PIN, LOW);
@@ -48,6 +90,8 @@ void loop() {
     Serial.println(" psi");
     Serial.flush();
   }
+
+  */
 
   /*
   //Turn on the compressor
