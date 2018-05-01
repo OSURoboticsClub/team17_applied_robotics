@@ -13,6 +13,11 @@ from time import time
 #####################################
 THREAD_HERTZ = 100
 
+P0 = (216.1302490234375, -9.575998306274414, 572.6145629882812, 63.89561462402344, 8.09478759765625, 83.43250274658203)
+P0_2 = (220.1302490234375, -9.575998306274414, 572.6145629882812, 63.89561462402344, 8.09478759765625, 83.43250274658203)
+P1 = (251.22869873046875, -9.575998306274414, 572.6145629882812, 63.89561462402344, 8.09478759765625, 83.43250274658203)
+P2 = (216.1302490234375, 0.10808953642845154, 606.7885131835938, 63.89561462402344, 8.09478759765625, 83.43250274658203)
+
 
 #####################################
 # Controller Class Definition
@@ -89,11 +94,15 @@ class CAOController(QtCore.QThread):
         self.arm_power_status = self.arm.AddVariable("@SERVO_ON", "")
         self.arm_speed_status = self.arm.AddVariable("@EXTSPEED", "")
         self.arm_current_position = self.arm.AddVariable("@CURRENT_POSITION", "")
+        # self.arm_current_joint_states = self.arm.AddVariable("@CURJNT", "")
+
+        temp = 1
 
         while self.run_thread_flag:
 
             start_time = time()
-            # j1, j2, j3, j4, j5, j6, _ = self.arm_current_position.Value
+            # print(self.arm_current_joint_states.Value)
+            test = list(self.arm_current_position.Value)
             #
             # self.j1_set__signal.emit(j1)
             # self.j2_set__signal.emit(j2)
@@ -128,15 +137,17 @@ class CAOController(QtCore.QThread):
                 self.set_motor_speed = False
 
             if self.move_p0:
-                self.arm.Move(1, "@P P0", "")
+                test[0] += 10
+                print(test)
+                self.arm.Move(1, str(tuple(test)), "")
                 self.move_p0 = False
 
             if self.move_p1:
-                self.arm.Move(1, "@P P1", "")
+                self.arm.Move(1, str(P0_2), "")
                 self.move_p1 = False
 
             if self.move_p2:
-                self.arm.Move(1, "@P P2", "")
+                self.arm.Move(1, str(P2), "")
                 self.move_p2 = False
 
             time_diff = time() - start_time
