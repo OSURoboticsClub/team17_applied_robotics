@@ -1,7 +1,6 @@
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 import signal
-import qdarkstyle
 
 from Framework.arm_status_sender import ArmStatusSender as ArmStatusSender
 from Framework.arm_control_receiver import ArmControlReceiver as ArmControlReceiver

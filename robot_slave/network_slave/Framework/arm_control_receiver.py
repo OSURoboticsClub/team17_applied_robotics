@@ -7,6 +7,8 @@ import pythoncom
 import win32com.client
 import time
 from time import time
+import socket
+import json
 
 #####################################
 # Global Variables
@@ -19,6 +21,9 @@ P2 = (216.1302490234375, 0.10808953642845154, 606.7885131835938, 63.895614624023
 
 J0 = (-2.4949951171875, -68.55029296875, 161.4649658203125, 0.2345581203699112, -40.739683151245117, 60.7391586303711)
 
+BAD_VAL = -1000000
+
+TCP_PORT = 9877
 
 #####################################
 # Controller Class Definition
@@ -40,6 +45,10 @@ class ArmControlReceiver(QtCore.QThread):
         # ########## Class Variables ##########
         self.wait_time = 1.0 / THREAD_HERTZ
 
+        self.control_tcp_server = None
+        self.client_connection = None
+        self.client_address = None
+
         self.cao_engine = None
         self.controller = None
         self.arm = None
@@ -56,29 +65,20 @@ class ArmControlReceiver(QtCore.QThread):
             "fire_tank": 0
         }
 
+        self.current_message = ""
+
         self.command_queue = []
 
     def run(self):
         self.initialize_cao_engine()
-        self.add_item_to_command_queue({"enable_motors": True})
-        self.add_item_to_command_queue({"change_robot_speed": 90})
-        self.add_item_to_command_queue({"move_position_abs": P1})
-        self.add_item_to_command_queue({"move_position_abs": P0})
-        self.add_item_to_command_queue({"move_position_abs": P2})
-        self.add_item_to_command_queue({"move_joint_abs": J0})
-
-        temp = 0
+        self.initialize_tcp_server()
 
         while self.run_thread_flag:
             start_time = time()
 
-            if temp:
-                self.add_item_to_command_queue({"move_joint_rel": (35, 10, 10, 10, 20, 45)})
-                temp = 0
-            else:
-                self.add_item_to_command_queue({"move_joint_rel": (-35, -10, -10, -10, -20, -45)})
-                temp = 1
-
+            # self.add_item_to_command_queue({"move_joint_rel": (10, 0, 0, 0, 0, 0)})
+            # self.add_item_to_command_queue({"move_joint_rel": (-10, 0, 0, 0, 0, 0)})
+            self.check_for_new_command_message()
             self.process_command_queue_item()
 
             time_diff = time() - start_time
@@ -89,6 +89,33 @@ class ArmControlReceiver(QtCore.QThread):
         self.cao_engine = win32com.client.Dispatch("CAO.CaoEngine")
         self.controller = self.cao_engine.Workspaces(0).AddController("RC", "CaoProv.DENSO.NetwoRC", "", "conn=eth:192.168.1.10")
         self.arm = self.controller.AddRobot("Arm1", "")
+
+    def initialize_tcp_server(self):
+        self.control_tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.control_tcp_server.bind(('', TCP_PORT))
+        self.control_tcp_server.listen(5)
+
+    def check_for_new_command_message(self):
+        try:
+            self.current_message += self.client_connection.recv(4096)
+
+            found_pound = self.current_message.find("#####")
+
+            if found_pound != -1:
+                split_message = str(self.current_message[:found_pound])
+
+                self.current_message = self.current_message[found_pound + 5:]
+
+                try:
+                    json_message = json.loads(split_message)
+
+                    print json_message
+                    self.command_queue.append(json_message)
+                except Exception, e:
+                    print e, "could not parse"
+        except Exception, e:
+            print e, "other"
+            self.client_connection, self.client_address = self.control_tcp_server.accept()
 
     def process_command_queue_item(self):
         if self.command_queue:
@@ -123,6 +150,9 @@ class ArmControlReceiver(QtCore.QThread):
     def move_arm_position_relative(self, position_offsets):
         current_position = self.status_sender_class.position
 
+        if current_position["rz"] == BAD_VAL:
+            return
+
         new_position = (
             current_position["x"] + position_offsets[0],
             current_position["y"] + position_offsets[1],
@@ -131,14 +161,17 @@ class ArmControlReceiver(QtCore.QThread):
             current_position["ry"] + position_offsets[4],
             current_position["rz"] + position_offsets[5],
         )
-
+        print "here"
         self.move_arm_position_absolute(new_position)
 
     def move_joints_absolute(self, joint_positions):
-        self.arm.Move(1, "J" + str(joint_positions))
+        self.arm.Move(1, "J" + str(tuple(joint_positions)))
 
     def move_joints_relative(self, joint_position_offsets):
         current_position = self.status_sender_class.joints
+
+        if current_position[6] == BAD_VAL:
+            return
 
         new_joint_positions = (
             current_position[1] + joint_position_offsets[0],

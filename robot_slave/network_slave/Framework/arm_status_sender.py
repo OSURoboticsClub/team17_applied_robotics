@@ -8,11 +8,26 @@ import win32com.client
 import time
 from time import time
 import json
+import socket
 
 #####################################
 # Global Variables
 #####################################
-THREAD_HERTZ = 10
+THREAD_HERTZ = 60
+
+MESSAGE_HERTZ = 5
+
+TCP_PORT = 9876
+
+BAD_VAL = -1000000
+
+
+#####################################
+# Controller Class Definition
+#####################################
+class NetworkSender(QtCore.QThread):
+    def __init__(self):
+        pass
 
 
 #####################################
@@ -21,22 +36,22 @@ THREAD_HERTZ = 10
 class ArmStatusSender(QtCore.QThread):
 
     position = {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "rx": 0,
-        "ry": 0,
-        "rz": 0,
-        "fig": 0
+        "x": BAD_VAL,
+        "y": BAD_VAL,
+        "z": BAD_VAL,
+        "rx": BAD_VAL,
+        "ry": BAD_VAL,
+        "rz": BAD_VAL,
+        "fig": BAD_VAL
     }
 
     joints = {
-        1: 0,
-        2: 0,
-        3: 0,
-        4: 0,
-        5: 0,
-        6: 0
+        1: BAD_VAL,
+        2: BAD_VAL,
+        3: BAD_VAL,
+        4: BAD_VAL,
+        5: BAD_VAL,
+        6: BAD_VAL
     }
 
     statuses = {
@@ -65,6 +80,10 @@ class ArmStatusSender(QtCore.QThread):
         # ########## Class Variables ##########
         self.wait_time = 1.0 / THREAD_HERTZ
 
+        self.status_tcp_server = None
+        self.client_connection = None
+        self.client_address = None
+
         self.cao_engine = None
         self.controller = None
         self.arm = None
@@ -78,8 +97,11 @@ class ArmStatusSender(QtCore.QThread):
         self.robot_current_position = None
         self.robot_current_joint_angles = None
 
+        self.last_packet_sent_time = time()
+
     def run(self):
         self.initialize_cao_engine_and_watchers()
+        self.initialize_tcp_server()
 
         while self.run_thread_flag:
             start_time = time()
@@ -88,11 +110,15 @@ class ArmStatusSender(QtCore.QThread):
             self.get_position()
             self.get_joint_angles()
 
-            self.send_status_package()
+            message_diff = time() - self.last_packet_sent_time
+
+            # TODO: SPLIT THIS OUT IF IT CAUSES PROBLEMS!!!!!!
+            if message_diff > (1.0 / MESSAGE_HERTZ):
+                self.send_status_package()
+                self.last_packet_sent_time = time()
 
             time_diff = time() - start_time
-
-            self.msleep(max(int(self.wait_time - time_diff), 0))
+            self.msleep(max(int(self.wait_time - time_diff) * 1000, 0))
 
     def initialize_cao_engine_and_watchers(self):
         pythoncom.CoInitialize()
@@ -108,6 +134,11 @@ class ArmStatusSender(QtCore.QThread):
         self.robot_speed = self.arm.AddVariable("@EXTSPEED", "")
         self.robot_current_position = self.arm.AddVariable("@CURRENT_POSITION", "")
         self.robot_current_joint_angles = self.arm.AddVariable("@CURRENT_ANGLE", "")
+
+    def initialize_tcp_server(self):
+        self.status_tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.status_tcp_server.bind(('', TCP_PORT))
+        self.status_tcp_server.listen(5)
 
     def get_statuses(self):
         motor_on = self.robot_enabled.Value
@@ -146,7 +177,11 @@ class ArmStatusSender(QtCore.QThread):
             "joints": self.joints
         }
 
-        # print(json.dumps(package))
+        try:
+            self.client_connection.sendall(json.dumps(package))
+            self.client_connection.sendall("#####")
+        except:
+            self.client_connection, self.client_address = self.status_tcp_server.accept()
 
     def get_joint_angles(self):
         j1, j2, j3, j4, j5, j6, _, _ = self.robot_current_joint_angles.Value
