@@ -215,8 +215,11 @@ class ArmControlReceiver(QtCore.QThread):
         self.arm.Execute("ExtSpeed", (speed, speed, speed))
 
     def move_arm_position_absolute(self, position):
-        if self.status_sender_class.statuses["motor_enabled"]:
-            self.arm.Move(1, "@P " + str(tuple(position)), "NEXT")
+        try:
+            if self.status_sender_class.statuses["motor_enabled"]:
+                self.arm.Move(1, "@P " + str(tuple(position)), "NEXT")
+        except:
+            pass
 
     def move_arm_position_relative(self, position_offsets):
         current_position = self.status_sender_class.position
@@ -236,8 +239,11 @@ class ArmControlReceiver(QtCore.QThread):
         self.move_arm_position_absolute(new_position)
 
     def move_joints_absolute(self, joint_positions):
-        if self.status_sender_class.statuses["motor_enabled"]:
-            self.arm.Move(1, "J" + str(tuple(joint_positions)), "NEXT")
+        try:
+            if self.status_sender_class.statuses["motor_enabled"]:
+                self.arm.Move(1, "J" + str(tuple(joint_positions)), "NEXT")
+        except:
+            pass
 
     def move_joints_relative(self, joint_position_offsets):
         current_position = self.status_sender_class.joints
