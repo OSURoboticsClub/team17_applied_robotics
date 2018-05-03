@@ -1,7 +1,7 @@
 import rospy
 from std_msgs.msg import Float32MultiArray
 
-rospy.init_node("another_test")
+rospy.init_node("ano")
 
 pub = rospy.Publisher("/denso_control/relative_joints", Float32MultiArray, queue_size=1)
 
