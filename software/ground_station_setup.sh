@@ -9,7 +9,7 @@
 folders_to_link=(
     denso_main
     denso_master
-    ground_station
+    denso_ground_station
 )
 
 # Print heading
