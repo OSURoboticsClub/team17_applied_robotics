@@ -4,7 +4,7 @@
 import rospy
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 
-from network_master.msg import DensoStatusMessage
+from denso_master.msg import DensoStatusMessage
 from std_msgs.msg import UInt8, Bool
 
 

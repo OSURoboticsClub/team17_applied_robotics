@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # ########## Set Organization Details for QSettings ##########
     QtCore.QCoreApplication.setOrganizationName("OSURC")
     QtCore.QCoreApplication.setOrganizationDomain("http://osurobotics.club/")
-    QtCore.QCoreApplication.setApplicationName("network_slave")
+    QtCore.QCoreApplication.setApplicationName("denso_slave")
 
     # ########## Start Ground Station If Ready ##########
     network_slave = NetworkSlave()

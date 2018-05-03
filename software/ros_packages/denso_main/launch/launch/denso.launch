@@ -1,0 +1,7 @@
+<launch>
+    <!-- ########## Start Denso Control Nodes ########## -->
+    <include file="$(find denso_main)/launch/rover/control.launch"/>
+
+    <!-- ########## Start ZED ########## -->
+    <include file="$(find zed_wrapper)/launch/zed.launch"/>=
+</launch>

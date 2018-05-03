@@ -1,0 +1,9 @@
+<launch>
+
+    <node name="denso_control_sender" pkg="denso_master" type="control_sender.py" respawn="true" output="screen">
+    </node>
+
+    <node name="denso_status_receiver" pkg="denso_master" type="status_receiver.py" respawn="true" output="screen">
+    </node>
+
+</launch>

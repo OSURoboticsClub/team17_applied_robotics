@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>network_master</name>
+  <name>denso_master</name>
   <version>0.0.0</version>
   <description>The network_master package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="denso@todo.todo">denso</maintainer>
+  <maintainer email="denso@todo.todo">caperren</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
