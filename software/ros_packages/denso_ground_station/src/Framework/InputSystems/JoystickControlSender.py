@@ -17,7 +17,7 @@ GAME_CONTROLLER_NAME = "Logitech Logitech Extreme 3D Pro"
 
 DEFAULT_ARM_COMMAND_TOPIC = "/denso_control/relative_joints"
 
-DRIVE_COMMAND_HERTZ = 10
+DRIVE_COMMAND_HERTZ = 15
 
 Z_AXIS_DEADBAND = 0.2
 Y_AXIS_DEADBAND = 0.05
@@ -64,12 +64,12 @@ class LogitechJoystick(QtCore.QThread):
             "five_pressed": 0,
             "six_pressed": 0,
 
+            "seven_pressed": 0,
+            "eight_pressed": 0,
+            "nine_pressed": 0,
+            "ten_pressed": 0,
             "eleven_pressed": 0,
             "twelve_pressed": 0,
-            "thirteen_pressed": 0,
-            "fourteen_pressed": 0,
-            "fifteen_pressed": 0,
-            "sixteen_pressed": 0,
         }
 
         self.raw_mapping_to_class_mapping = {
@@ -88,12 +88,12 @@ class LogitechJoystick(QtCore.QThread):
             "BTN_TOP2": "five_pressed",
             "BTN_PINKIE": "six_pressed",
 
+            "BTN_BASE": "seven_pressed",
+            "BTN_BASE2": "eight_pressed",
+            "BTN_BASE3": "nine_pressed",
+            "BTN_BASE4": "ten_pressed",
             "BTN_BASE5": "eleven_pressed",
             "BTN_BASE6": "twelve_pressed",
-            "BTN_BASE3": "thirteen_pressed",
-            "BTN_BASE4": "fourteen_pressed",
-            "BTN_BASE": "fifteen_pressed",
-            "BTN_BASE2": "sixteen_pressed",
         }
 
         self.ready = False
@@ -124,6 +124,7 @@ class LogitechJoystick(QtCore.QThread):
             for event in events:
                 if event.code in self.raw_mapping_to_class_mapping:
                     self.controller_states[self.raw_mapping_to_class_mapping[event.code]] = event.state
+                    # print event.code
 
             self.ready = True
 
@@ -186,40 +187,40 @@ class JoystickControlSender(QtCore.QThread):
         self.publish_drive_command()
 
     def publish_drive_command(self):
-        throttle_axis = max((255 - self.joystick.controller_states["throttle_axis"]) / 255.0, THROTTLE_MIN)
-
         if self.drive_paused:
-            arm_message = Float32MultiArray()
-            arm_message.data = (0, 0, 0, 0, 0, 0)
+            pass
 
         else:
-            arm_message = self.get_control_message(throttle_axis)
+            arm_message = self.get_control_message()
+            self.arm_command_publisher.publish(arm_message)
 
         # print arm_message
-        self.arm_command_publisher.publish(arm_message)
+        # self.arm_command_publisher.publish(arm_message)
 
-    def get_control_message(self, throttle_axis):
+    def get_control_message(self):
         control_message = Float32MultiArray()
 
-        multiplier = 3
+        multiplier = 1.75
 
-        y_axis = throttle_axis * multiplier * (-(self.joystick.controller_states["y_axis"] - 512) / 512.0)
-        z_axis = throttle_axis * multiplier * (-(self.joystick.controller_states["z_axis"] - 128) / 128.0)
-        x_axis = throttle_axis * multiplier * (-(self.joystick.controller_states["x_axis"] - 512) / 512.0)
+        j1 = self.joystick.controller_states["eleven_pressed"]
+        j2 = self.joystick.controller_states["twelve_pressed"]
+        j3 = self.joystick.controller_states["nine_pressed"]
+        j4 = self.joystick.controller_states["ten_pressed"]
+        j5 = self.joystick.controller_states["seven_pressed"]
+        j6 = self.joystick.controller_states["eight_pressed"]
+
+        y_axis = multiplier * (-(self.joystick.controller_states["y_axis"] - 512) / 512.0)
 
         if abs(y_axis) < Y_AXIS_DEADBAND:
             y_axis = 0
 
-        if abs(x_axis) < X_AXIS_DEADBAND:
-            x_axis = 0
-
         control_message.data = (
-            x_axis,
-            y_axis,
-            0,
-            0,
-            0,
-            z_axis
+            y_axis if j1 else 0,
+            y_axis if j2 else 0,
+            y_axis if j3 else 0,
+            y_axis if j4 else 0,
+            y_axis if j5 else 0,
+            y_axis if j6 else 0,
         )
 
         return control_message

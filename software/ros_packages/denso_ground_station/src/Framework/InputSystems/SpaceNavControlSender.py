@@ -15,8 +15,6 @@ from std_msgs.msg import Float32MultiArray
 #####################################
 THREAD_HERTZ = 15
 
-DEFAULT_ARM_COMMAND_TOPIC = "/denso_control/relative_joints"
-
 
 #####################################
 # Controller Class Definition
@@ -24,8 +22,8 @@ DEFAULT_ARM_COMMAND_TOPIC = "/denso_control/relative_joints"
 class SpaceNavControlSender(QtCore.QThread):
     spacenav_state_update__signal = QtCore.pyqtSignal(object)
 
-    GUI_MODE = 0
-    ARM_MODE = 1
+    CONTROL_MODE = 0
+    WAIT_MODE = 1
 
     def __init__(self, shared_objects):
         super(SpaceNavControlSender, self).__init__()
@@ -98,9 +96,7 @@ class SpaceNavControlSender(QtCore.QThread):
             5: "f_pressed"
         }
 
-        self.arm_command_publisher = rospy.Publisher(DEFAULT_ARM_COMMAND_TOPIC, Float32MultiArray, queue_size=1)
-
-        self.current_control_mode = self.GUI_MODE
+        self.current_control_mode = self.WAIT_MODE
 
     def run(self):
         spnav.spnav_open()
@@ -111,11 +107,11 @@ class SpaceNavControlSender(QtCore.QThread):
 
             self.process_spnav_events()
             self.check_control_mode_change()
-            self.broadcast_control_state()
+            self.send_arm_control_commands()
 
             time_diff = time() - start_time
 
-            self.msleep(max(int(self.wait_time - time_diff), 0))
+            self.msleep(max(int(self.wait_time - time_diff * 1000), 0))
 
     def process_spnav_events(self):
         event = spnav.spnav_poll_event()
@@ -137,14 +133,14 @@ class SpaceNavControlSender(QtCore.QThread):
 
     def check_control_mode_change(self):
         if self.spnav_states["1_pressed"]:
-            self.current_control_mode = self.GUI_MODE
+            self.current_control_mode = self.CONTROL_MODE
         elif self.spnav_states["2_pressed"]:
-            self.current_control_mode = self.ARM_MODE
+            self.current_control_mode = self.WAIT_MODE
 
-    def broadcast_control_state(self):
-        if self.current_control_mode == self.GUI_MODE:
+    def send_arm_control_commands(self):
+        if self.current_control_mode == self.CONTROL_MODE:
             self.spacenav_state_update__signal.emit(self.spnav_states)
-        elif self.current_control_mode == self.ARM_MODE:
+        elif self.current_control_mode == self.WAIT_MODE:
             pass
 
     def connect_signals_and_slots(self):
