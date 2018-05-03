@@ -57,7 +57,7 @@ class ArmControlSender(QtCore.QThread):
 
             message.data = (
                 self.spacenav_data["linear_y"] * multiplier,
-                self.spacenav_data["linear_x"] * multiplier,
+                -self.spacenav_data["linear_x"] * multiplier,
                 0,
                 0,
                 0,

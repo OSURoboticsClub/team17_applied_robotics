@@ -5,12 +5,17 @@ import rospy
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 
 from denso_master.msg import DensoStatusMessage
-from std_msgs.msg import UInt8, Bool
+from std_msgs.msg import UInt8, Bool, Float32MultiArray
 
 
 DENSO_STATUS_TOPIC_NAME = "/denso_status"
 DENSO_SPEED_TOPIC_NAME = "/denso_control/speed"
 DENSO_MOTOR_TOPIC_NAME = "/denso_control/motors_enabled"
+
+DENSO_ABSOLUTE_JOINTS_TOPIC_NAME = "/denso_control/absolute_joints"
+
+CATCH_JOINT_POSITIONS_MESSAGE = Float32MultiArray(data=(0, -70, 70, 0, 90, -5))
+FIRE_JOINT_POSITIONS_MESSAGE = Float32MultiArray(data=(0, -30, 135, 0, 29, -5))
 
 
 class SensorCore(QtCore.QThread):
@@ -37,7 +42,6 @@ class SensorCore(QtCore.QThread):
     j5_changed__signal = QtCore.pyqtSignal(float)
     j6_changed__signal = QtCore.pyqtSignal(float)
 
-
     def __init__(self, shared_objects):
         super(SensorCore, self).__init__()
 
@@ -61,6 +65,9 @@ class SensorCore(QtCore.QThread):
         self.arm_set_speed_spinbox = self.left_screen.arm_speed_spinbox  # type: QtWidgets.QSpinBox
         self.arm_set_speed_button = self.left_screen.arm_set_speed_button  # type: QtWidgets.QPushButton
 
+        self.preset_catch_button = self.left_screen.preset_catch_button  # type: QtWidgets.QPushButton
+        self.preset_fire_button = self.left_screen.preset_fire_button  # type: QtWidgets.QPushButton
+
         self.x_lcdnumber = self.left_screen.x_lcdnumber  # type: QtWidgets.QLCDNumber
         self.y_lcdnumber = self.left_screen.y_lcdnumber  # type: QtWidgets.QLCDNumber
         self.z_lcdnumber = self.left_screen.z_lcdnumber  # type: QtWidgets.QLCDNumber
@@ -76,6 +83,8 @@ class SensorCore(QtCore.QThread):
         self.j6_lcdnumber = self.left_screen.j6_lcdnumber  # type: QtWidgets.QLCDNumber
 
         self.status_subscriber = rospy.Subscriber(DENSO_STATUS_TOPIC_NAME, DensoStatusMessage, self.on_new_status_update_received)
+
+        self.abs_joints_publisher = rospy.Publisher(DENSO_ABSOLUTE_JOINTS_TOPIC_NAME, Float32MultiArray, queue_size=1)
 
         self.speed_publisher = rospy.Publisher(DENSO_SPEED_TOPIC_NAME, UInt8, queue_size=1)
         self.motor_enable_publisher = rospy.Publisher(DENSO_MOTOR_TOPIC_NAME, Bool, queue_size=1)
@@ -143,6 +152,12 @@ class SensorCore(QtCore.QThread):
     def on_set_arm_speed_pressed__slot(self):
         self.speed_publisher.publish(self.arm_set_speed_spinbox.value())
 
+    def on_catch_pressed__slot(self):
+        self.abs_joints_publisher.publish(CATCH_JOINT_POSITIONS_MESSAGE)
+
+    def on_fire_pressed__slot(self):
+        self.abs_joints_publisher.publish(FIRE_JOINT_POSITIONS_MESSAGE)
+
     def connect_signals_and_slots(self):
         self.motor_enabled_stylesheet_change__signal.connect(self.motor_enabled_label.setStyleSheet)
         self.arm_normal_stylesheet_change__signal.connect(self.arm_normal_label.setStyleSheet)
@@ -169,6 +184,9 @@ class SensorCore(QtCore.QThread):
         self.motor_enable_button.clicked.connect(self.on_motor_enabled_pressed__slot)
         self.motor_disable_button.clicked.connect(self.on_motor_disabled_pressed__slot)
         self.arm_set_speed_button.clicked.connect(self.on_set_arm_speed_pressed__slot)
+
+        self.preset_catch_button.clicked.connect(self.on_catch_pressed__slot)
+        self.preset_fire_button.clicked.connect(self.on_fire_pressed__slot)
 
     def setup_signals(self, start_signal, signals_and_slots_signal, kill_signal):
         start_signal.connect(self.start)

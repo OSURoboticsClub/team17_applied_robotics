@@ -410,6 +410,31 @@ Speed</string>
          </layout>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Preset Move</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="preset_catch_button">
+            <property name="text">
+             <string>Catch</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="preset_fire_button">
+            <property name="text">
+             <string>Fire</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -540,25 +565,63 @@ Speed</string>
             </item>
             <item row="0" column="1">
              <widget class="QLCDNumber" name="x_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
               <property name="value" stdset="0">
-               <double>0.000000000000000</double>
+               <double>12.111212000000000</double>
               </property>
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QLCDNumber" name="y_lcdnumber"/>
+             <widget class="QLCDNumber" name="y_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QLCDNumber" name="z_lcdnumber"/>
+             <widget class="QLCDNumber" name="z_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QLCDNumber" name="rx_lcdnumber"/>
+             <widget class="QLCDNumber" name="rx_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="4" column="1">
-             <widget class="QLCDNumber" name="ry_lcdnumber"/>
+             <widget class="QLCDNumber" name="ry_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="5" column="1">
-             <widget class="QLCDNumber" name="rz_lcdnumber"/>
+             <widget class="QLCDNumber" name="rz_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -690,22 +753,64 @@ Speed</string>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QLCDNumber" name="j1_lcdnumber"/>
+             <widget class="QLCDNumber" name="j1_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QLCDNumber" name="j2_lcdnumber"/>
+             <widget class="QLCDNumber" name="j2_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QLCDNumber" name="j3_lcdnumber"/>
+             <widget class="QLCDNumber" name="j3_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QLCDNumber" name="j4_lcdnumber"/>
+             <widget class="QLCDNumber" name="j4_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="4" column="1">
-             <widget class="QLCDNumber" name="j5_lcdnumber"/>
+             <widget class="QLCDNumber" name="j5_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
             <item row="5" column="1">
-             <widget class="QLCDNumber" name="j6_lcdnumber"/>
+             <widget class="QLCDNumber" name="j6_lcdnumber">
+              <property name="digitCount">
+               <number>8</number>
+              </property>
+              <property name="value" stdset="0">
+               <double>12.111212000000000</double>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -770,24 +875,6 @@ Speed</string>
      </widget>
     </item>
    </layout>
-   <zorder>label</zorder>
-   <zorder>label_2</zorder>
-   <zorder>label_3</zorder>
-   <zorder>formLayoutWidget</zorder>
-   <zorder>formLayoutWidget_3</zorder>
-   <zorder>label</zorder>
-   <zorder>label_2</zorder>
-   <zorder>label</zorder>
-   <zorder>label_18</zorder>
-   <zorder>formLayoutWidget_2</zorder>
-   <zorder>arm_speed_spinbox</zorder>
-   <zorder>arm_set_speed_button</zorder>
-   <zorder>label_30</zorder>
-   <zorder>label_31</zorder>
-   <zorder>motor_enable_button</zorder>
-   <zorder>motor_disable_button</zorder>
-   <zorder>label_32</zorder>
-   <zorder>line_4</zorder>
   </widget>
  </widget>
  <resources/>
