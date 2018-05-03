@@ -5,7 +5,7 @@
 #define LED_PIN 13
 
 //Code safeties
-#define SAFETY_PSI_MAX 15
+#define SAFETY_PSI_MAX 25
 
 String input;
 
@@ -27,6 +27,7 @@ void loop() {
   uint16_t targetPSI = 0;
   float    currentPSI = 0;
   uint8_t  shouldCompress = 0;
+  digitalWrite(VALVE_CONTROL_PIN, HIGH) ;
   
   if(Serial.available()){
     input = Serial.readStringUntil('\n');
@@ -67,6 +68,13 @@ void loop() {
       //Stop the compressor
       digitalWrite(COMPRESSOR_CONTROL_PIN, LOW);
       digitalWrite(LED_PIN, LOW);
+
+      //Wait for half a second
+      delay(500) ;
+      //Release Valve
+      digitalWrite(VALVE_CONTROL_PIN, LOW) ;
+      //Wait to let all the pressure out
+      delay(2500) ;
     }
     
   }
