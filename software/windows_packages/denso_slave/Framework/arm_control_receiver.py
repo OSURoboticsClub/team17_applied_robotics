@@ -5,7 +5,6 @@
 from PyQt5 import QtCore, QtWidgets
 import pythoncom
 import win32com.client
-import time
 from time import time
 import socket
 import json
@@ -47,12 +46,14 @@ class RAWControlReceiver(QtCore.QThread):
 
         self.current_message = ""
 
+        self.num_messages = 0
+        self.last_time = time()
+
     def run(self):
         self.initialize_tcp_server()
         while self.run_thread_flag:
             self.check_for_new_command_message()
             # self.msleep(2)
-
 
     def initialize_tcp_server(self):
         self.control_tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -73,7 +74,12 @@ class RAWControlReceiver(QtCore.QThread):
                 try:
                     json_message = json.loads(split_message)
 
-                    # print "procesing", time()
+                    self.num_messages += 1
+
+                    if time() - self.last_time > 1:
+                        print self.num_messages
+                        self.last_time = time()
+
                     self.new_message__signal.emit(json_message)
                 except Exception, e:
                     print e, "could not parse"
