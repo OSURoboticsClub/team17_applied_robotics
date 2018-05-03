@@ -77,7 +77,8 @@ class RAWControlReceiver(QtCore.QThread):
                     self.num_messages += 1
 
                     if time() - self.last_time > 1:
-                        print self.num_messages
+                        print "Num commands received:", self.num_messages
+                        self.num_messages = 0
                         self.last_time = time()
 
                     self.new_message__signal.emit(json_message)
@@ -136,17 +137,25 @@ class ArmControlReceiver(QtCore.QThread):
 
         self.command_queue = []
 
+        self.num_commands = 0
+
+        self.last_commands_time = time()
+
     def run(self):
         self.initialize_cao_engine()
-        # self.initialize_tcp_server()
 
         while self.run_thread_flag:
             start_time = time()
 
             # self.add_item_to_command_queue({"move_joint_rel": (10, 0, 0, 0, 0, 0)})
             # self.add_item_to_command_queue({"move_joint_rel": (-10, 0, 0, 0, 0, 0)})
-            # self.check_for_new_command_message()
+
             self.process_command_queue_item()
+
+            if time() - self.last_commands_time > 1:
+                print "Num commands processed:", self.num_commands
+                self.num_commands = 0
+                self.last_commands_time = time()
 
             time_diff = time() - start_time
             self.msleep(max(int(self.wait_time - time_diff), 0))
@@ -157,35 +166,8 @@ class ArmControlReceiver(QtCore.QThread):
         self.controller = self.cao_engine.Workspaces(0).AddController("RC", "CaoProv.DENSO.NetwoRC", "", "conn=eth:192.168.1.10")
         self.arm = self.controller.AddRobot("Arm1", "")
 
-    def initialize_tcp_server(self):
-        self.control_tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.control_tcp_server.bind(('', TCP_PORT))
-        self.control_tcp_server.listen(5)
-
     def on_new_message__signal(self, message):
         self.command_queue.append(message)
-
-    def check_for_new_command_message(self):
-        try:
-            self.current_message += self.client_connection.recv(1)
-
-            found_pound = self.current_message.find("#####")
-
-            if found_pound != -1:
-                split_message = str(self.current_message[:found_pound])
-
-                self.current_message = self.current_message[found_pound + 5:]
-
-                try:
-                    json_message = json.loads(split_message)
-
-                    # print "procesing", time()
-                    self.command_queue.append(json_message)
-                except Exception, e:
-                    print e, "could not parse"
-        except Exception, e:
-            print e, "other"
-            self.client_connection, self.client_address = self.control_tcp_server.accept()
 
     def process_command_queue_item(self):
         if self.command_queue:
@@ -196,6 +178,8 @@ class ArmControlReceiver(QtCore.QThread):
 
             command_to_run = self.CONTROL_COMMANDS.get(key)
             command_to_run(data)
+
+            self.num_commands += 1
 
     def add_item_to_command_queue(self, item):
         self.command_queue.append(item)
@@ -224,7 +208,7 @@ class ArmControlReceiver(QtCore.QThread):
     def move_arm_position_relative(self, position_offsets):
         current_position = self.status_sender_class.position
 
-        if current_position["rz"] == BAD_VAL:
+        if current_position["rz"] == BAD_VAL or len(position_offsets) == position_offsets.count(0):
             return
 
         new_position = (
@@ -248,7 +232,7 @@ class ArmControlReceiver(QtCore.QThread):
     def move_joints_relative(self, joint_position_offsets):
         current_position = self.status_sender_class.joints
 
-        if current_position[6] == BAD_VAL:
+        if current_position[6] == BAD_VAL or len(joint_position_offsets) == joint_position_offsets.count(0):
             return
 
         new_joint_positions = (
