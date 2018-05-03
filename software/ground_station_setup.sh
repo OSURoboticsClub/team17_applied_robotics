@@ -10,7 +10,6 @@ folders_to_link=(
     denso_main
     denso_master
     ground_station
-    zed_wrapper
 )
 
 # Print heading
