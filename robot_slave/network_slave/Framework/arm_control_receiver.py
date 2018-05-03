@@ -13,7 +13,7 @@ import json
 #####################################
 # Global Variables
 #####################################
-THREAD_HERTZ = 10
+THREAD_HERTZ = 100
 
 P0 = (216.1302490234375, -9.575998306274414, 572.6145629882812, 63.89561462402344, 8.09478759765625, 83.43250274658203)
 P1 = (251.22869873046875, -9.575998306274414, 572.6145629882812, 63.89561462402344, 8.09478759765625, 83.43250274658203)
@@ -24,6 +24,63 @@ J0 = (-2.4949951171875, -68.55029296875, 161.4649658203125, 0.2345581203699112, 
 BAD_VAL = -1000000
 
 TCP_PORT = 9877
+
+
+#####################################
+# Controller Class Definition
+#####################################
+class RAWControlReceiver(QtCore.QThread):
+
+    new_message__signal = QtCore.pyqtSignal(dict)
+
+    def __init__(self):
+        super(RAWControlReceiver, self).__init__()
+        # ########## Thread Flags ##########
+        self.run_thread_flag = True
+
+        # ########## Class Variables ##########
+        self.wait_time = 1.0 / THREAD_HERTZ
+
+        self.control_tcp_server = None
+        self.client_connection = None
+        self.client_address = None
+
+        self.current_message = ""
+
+    def run(self):
+        self.initialize_tcp_server()
+        while self.run_thread_flag:
+            self.check_for_new_command_message()
+            # self.msleep(2)
+
+
+    def initialize_tcp_server(self):
+        self.control_tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.control_tcp_server.bind(('', TCP_PORT))
+        self.control_tcp_server.listen(5)
+
+    def check_for_new_command_message(self):
+        try:
+            self.current_message += self.client_connection.recv(8)
+
+            found_pound = self.current_message.find("#####")
+
+            if found_pound != -1:
+                split_message = str(self.current_message[:found_pound])
+
+                self.current_message = self.current_message[found_pound + 5:]
+
+                try:
+                    json_message = json.loads(split_message)
+
+                    # print "procesing", time()
+                    self.new_message__signal.emit(json_message)
+                except Exception, e:
+                    print e, "could not parse"
+        except Exception, e:
+            print e, "other"
+            self.client_connection, self.client_address = self.control_tcp_server.accept()
+
 
 #####################################
 # Controller Class Definition
@@ -38,6 +95,10 @@ class ArmControlReceiver(QtCore.QThread):
 
         # ########## Get the settings instance ##########
         self.settings = QtCore.QSettings()
+
+        # ########## Get the settings instance ##########
+        self.message_handler = RAWControlReceiver()
+        self.message_handler.start()
 
         # ########## Thread Flags ##########
         self.run_thread_flag = True
@@ -71,14 +132,14 @@ class ArmControlReceiver(QtCore.QThread):
 
     def run(self):
         self.initialize_cao_engine()
-        self.initialize_tcp_server()
+        # self.initialize_tcp_server()
 
         while self.run_thread_flag:
             start_time = time()
 
             # self.add_item_to_command_queue({"move_joint_rel": (10, 0, 0, 0, 0, 0)})
             # self.add_item_to_command_queue({"move_joint_rel": (-10, 0, 0, 0, 0, 0)})
-            self.check_for_new_command_message()
+            # self.check_for_new_command_message()
             self.process_command_queue_item()
 
             time_diff = time() - start_time
@@ -95,9 +156,12 @@ class ArmControlReceiver(QtCore.QThread):
         self.control_tcp_server.bind(('', TCP_PORT))
         self.control_tcp_server.listen(5)
 
+    def on_new_message__signal(self, message):
+        self.command_queue.append(message)
+
     def check_for_new_command_message(self):
         try:
-            self.current_message += self.client_connection.recv(4096)
+            self.current_message += self.client_connection.recv(1)
 
             found_pound = self.current_message.find("#####")
 
@@ -109,7 +173,7 @@ class ArmControlReceiver(QtCore.QThread):
                 try:
                     json_message = json.loads(split_message)
 
-                    print json_message
+                    # print "procesing", time()
                     self.command_queue.append(json_message)
                 except Exception, e:
                     print e, "could not parse"
@@ -145,7 +209,8 @@ class ArmControlReceiver(QtCore.QThread):
         self.arm.Execute("ExtSpeed", (speed, speed, speed))
 
     def move_arm_position_absolute(self, position):
-        self.arm.Move(1, "@P " + str(tuple(position)), "")
+        if self.status_sender_class.statuses["motor_enabled"]:
+            self.arm.Move(1, "@P " + str(tuple(position)), "NEXT")
 
     def move_arm_position_relative(self, position_offsets):
         current_position = self.status_sender_class.position
@@ -161,11 +226,12 @@ class ArmControlReceiver(QtCore.QThread):
             current_position["ry"] + position_offsets[4],
             current_position["rz"] + position_offsets[5],
         )
-        print "here"
+        # print "here"
         self.move_arm_position_absolute(new_position)
 
     def move_joints_absolute(self, joint_positions):
-        self.arm.Move(1, "J" + str(tuple(joint_positions)))
+        if self.status_sender_class.statuses["motor_enabled"]:
+            self.arm.Move(1, "J" + str(tuple(joint_positions)), "NEXT")
 
     def move_joints_relative(self, joint_position_offsets):
         current_position = self.status_sender_class.joints
@@ -185,7 +251,7 @@ class ArmControlReceiver(QtCore.QThread):
         self.move_joints_absolute(new_joint_positions)
 
     def connect_signals_and_slots(self):
-        pass
+        self.message_handler.new_message__signal.connect(self.on_new_message__signal)
 
     def setup_signals(self, start_signal, signals_and_slots_signal, kill_signal):
         start_signal.connect(self.start)
@@ -193,4 +259,6 @@ class ArmControlReceiver(QtCore.QThread):
         kill_signal.connect(self.on_kill_threads_requested__slot)
 
     def on_kill_threads_requested__slot(self):
+        self.message_handler.run_thread_flag = False
+        self.message_handler.wait()
         self.run_thread_flag = False

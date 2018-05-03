@@ -15,7 +15,7 @@ from std_msgs.msg import Float32MultiArray, Bool, UInt8
 # Global Variables
 #####################################
 NODE_NAME = "robot_control_control_sender"
-DEFAULT_HERTZ = 10
+DEFAULT_HERTZ = 100
 
 DEFAULT_IP = "192.168.1.5"
 DEFAULT_PORT = 9877
@@ -89,26 +89,31 @@ class ControlSender(object):
             try:
                 self.control_tcp_client.sendall(json.dumps(data))
                 self.control_tcp_client.sendall("#####")
+                # print "sending"
             except:
                 pass
 
     def speed_control_callback(self, data):
-        print data.data
+        # print data.data
         self.command_queue.append({"change_robot_speed": data.data})
 
     def motor_control_callback(self, data):
         self.command_queue.append({"enable_motors": data.data})
 
     def abs_position_callback(self, data):
+        # print data.data
         self.command_queue.append({"move_position_abs": data.data})
 
     def rel_position_callback(self, data):
+        # print data.data
         self.command_queue.append({"move_position_rel": data.data})
 
     def abs_joints_callback(self, data):
+        # print data.data
         self.command_queue.append({"move_joint_abs": data.data})
 
     def rel_joints_callback(self, data):
+        # print data.data
         self.command_queue.append({"move_joint_rel": data.data})
 
 
