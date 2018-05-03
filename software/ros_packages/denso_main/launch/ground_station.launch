@@ -1,4 +1,4 @@
 <launch>
     <!-- ########## Start Ground Station Interface ########## -->
-    <node name="ground_station" pkg="ground_station" type="ground_station_launch.sh" required="true" output="screen"/>
+    <node name="denso_ground_station" pkg="denso_ground_station" type="ground_station_launch.sh" required="true" output="screen"/>
 </launch>
