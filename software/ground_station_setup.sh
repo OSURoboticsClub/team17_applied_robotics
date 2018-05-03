@@ -8,7 +8,7 @@
 # Which folders should be symbolically_linked?
 folders_to_link=(
     denso_main
-    network_master
+    denso_master
     ground_station
     zed_wrapper
 )
