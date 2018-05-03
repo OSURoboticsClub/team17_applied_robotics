@@ -88,7 +88,7 @@ class GroundStation(QtCore.QObject):
                                            self.RIGHT_SCREEN_ID)  # type: ApplicationWindow
 
         # ###### Initialize the Ground Station Node ######
-        rospy.init_node("ground_station")
+        rospy.init_node("denso_ground_station")
 
         # ##### Instantiate Regular Classes ######
 
