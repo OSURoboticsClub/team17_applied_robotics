@@ -4,6 +4,8 @@
 import rospy
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 
+import random
+
 from denso_master.msg import DensoStatusMessage
 from std_msgs.msg import UInt8, Bool, Float32MultiArray
 
@@ -14,8 +16,16 @@ DENSO_MOTOR_TOPIC_NAME = "/denso_control/motors_enabled"
 
 DENSO_ABSOLUTE_JOINTS_TOPIC_NAME = "/denso_control/absolute_joints"
 
+FIRE_JOINT_POSITIONS = (0, -30, 135, 0, 29, -5)
+
 CATCH_JOINT_POSITIONS_MESSAGE = Float32MultiArray(data=(0, -70, 70, 0, 90, -5))
-FIRE_JOINT_POSITIONS_MESSAGE = Float32MultiArray(data=(0, -30, 135, 0, 29, -5))
+FIRE_JOINT_POSITIONS_MESSAGE = Float32MultiArray(data=FIRE_JOINT_POSITIONS)
+
+ADVERSARY_RANDOM_J1_MIN = -35
+ADVERSARY_RANDOM_J1_MAX = 35
+
+ADVERSARY_RANDOM_J5_MIN = 15
+ADVERSARY_RANDOM_J5_MAX = 45
 
 
 class SensorCore(QtCore.QThread):
@@ -67,6 +77,8 @@ class SensorCore(QtCore.QThread):
 
         self.preset_catch_button = self.left_screen.preset_catch_button  # type: QtWidgets.QPushButton
         self.preset_fire_button = self.left_screen.preset_fire_button  # type: QtWidgets.QPushButton
+
+        self.adversary_demo_button = self.left_screen.adversary_demo_button  # type: QtWidgets.QPushButton
 
         self.x_lcdnumber = self.left_screen.x_lcdnumber  # type: QtWidgets.QLCDNumber
         self.y_lcdnumber = self.left_screen.y_lcdnumber  # type: QtWidgets.QLCDNumber
@@ -158,6 +170,27 @@ class SensorCore(QtCore.QThread):
     def on_fire_pressed__slot(self):
         self.abs_joints_publisher.publish(FIRE_JOINT_POSITIONS_MESSAGE)
 
+    def on_adversary_demo_button_pressed__slot(self):
+        self.on_fire_pressed__slot()
+
+        num_fakeouts = random.randint(8, 15)
+
+        for i in range(num_fakeouts):
+            message = Float32MultiArray()
+
+            rand_j1 = random.randint(ADVERSARY_RANDOM_J1_MIN, ADVERSARY_RANDOM_J1_MAX)
+            rand_j5 = random.randint(ADVERSARY_RANDOM_J5_MIN, ADVERSARY_RANDOM_J5_MAX)
+
+            fire_message = list(FIRE_JOINT_POSITIONS)
+            fire_message[0] = rand_j1
+            fire_message[4] = rand_j5
+
+            message.data = tuple(fire_message)
+
+            self.abs_joints_publisher.publish(message)
+
+        self.on_catch_pressed__slot()
+
     def connect_signals_and_slots(self):
         self.motor_enabled_stylesheet_change__signal.connect(self.motor_enabled_label.setStyleSheet)
         self.arm_normal_stylesheet_change__signal.connect(self.arm_normal_label.setStyleSheet)
@@ -187,6 +220,8 @@ class SensorCore(QtCore.QThread):
 
         self.preset_catch_button.clicked.connect(self.on_catch_pressed__slot)
         self.preset_fire_button.clicked.connect(self.on_fire_pressed__slot)
+
+        self.adversary_demo_button.clicked.connect(self.on_adversary_demo_button_pressed__slot)
 
     def setup_signals(self, start_signal, signals_and_slots_signal, kill_signal):
         start_signal.connect(self.start)
