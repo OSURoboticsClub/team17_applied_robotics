@@ -6,4 +6,10 @@
     <node name="denso_status_receiver" pkg="denso_master" type="status_receiver.py" respawn="true" output="screen">
     </node>
 
+    <node name="denso_interface_controller_main" pkg="denso_interface_controller" type="interface_controller.py" respawn="true" output="screen">
+    </node>
+
+    <node name="denso_interface_controller_led" pkg="denso_interface_controller" type="led_controller.py" respawn="true" output="screen">
+    </node>
+
 </launch>

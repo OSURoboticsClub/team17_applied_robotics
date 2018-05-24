@@ -10,6 +10,7 @@ folders_to_link=(
     denso_main
     denso_master
     zed_wrapper
+    denso_interface_controller
 )
 
 # Print heading
