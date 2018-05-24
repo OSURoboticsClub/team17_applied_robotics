@@ -10,6 +10,7 @@ folders_to_link=(
     denso_main
     denso_master
     denso_ground_station
+    denso_interface_controller
 )
 
 # Print heading
