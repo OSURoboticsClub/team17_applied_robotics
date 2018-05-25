@@ -17,6 +17,7 @@ import Framework.InputSystems.JoystickControlSender as JoystickControlSender
 import Framework.StatusSystems.StatusCore as StatusCore
 import Framework.InputSystems.SpaceNavControlSender as SpaceNavControlSender
 import Framework.ArmControlSystems.ArmControlSender as ArmControlSender
+import Framework.GameSystems.GameManagerCore as GameManagerCore
 
 #####################################
 # Global Variables
@@ -99,6 +100,7 @@ class GroundStation(QtCore.QObject):
         self.__add_thread("Rover Status", StatusCore.SensorCore(self.shared_objects))
         self.__add_thread("Spacenav Sender", SpaceNavControlSender.SpaceNavControlSender(self.shared_objects))
         self.__add_thread("Arm Control Sender", ArmControlSender.ArmControlSender(self.shared_objects))
+        self.__add_thread("Game Manager", GameManagerCore.GameManager(self.shared_objects))
 
         self.connect_signals_and_slots_signal.emit()
         self.__connect_signals_to_slots()

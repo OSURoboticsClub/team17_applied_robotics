@@ -30,7 +30,7 @@ time.sleep(2)
 #     i += 1
 
 message.set_pressure = 0
-message.should_fire = 1
+message.should_fire = 0
 
 publisher.publish(message)
 
