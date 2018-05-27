@@ -50,10 +50,10 @@ void setup() {
   digitalWrite(relay_control_pin, LOW);
 
   firing_servo.attach(shooting_servo_pin);
-  firing_servo.write(0);
+  firing_servo.write(170);
 
   tamping_servo.attach(tamping_servo_pin);
-  tamping_servo.write(0);
+  tamping_servo.write(180);
 }
 
 void loop() {
@@ -110,10 +110,10 @@ void pressurize_if_needed() {
 
   if (current_set_pressure > 0) {
 
-    if(keep_charging){
+    if (keep_charging) {
       digitalWrite(relay_control_pin, HIGH);
 
-      if(current_actual_pressure >= current_set_pressure){
+      if (current_actual_pressure >= current_set_pressure) {
         keep_charging = false;
         digitalWrite(relay_control_pin, LOW);
       }
@@ -130,13 +130,11 @@ void pressurize_if_needed() {
 
 void tamp_if_needed() {
   if (should_tamp) {
+
+    tamping_servo.write(60);
+
+    delay(1000);
     tamping_servo.write(180);
-    delay(250);
-    tamping_servo.write(0);
-    delay(250);
-    tamping_servo.write(180);
-    delay(250);
-    tamping_servo.write(0);
 
     should_tamp = false;
   }
@@ -144,9 +142,9 @@ void tamp_if_needed() {
 
 void shoot_if_needed() {
   if (should_shoot) {
-    firing_servo.write(180);
-    delay(250);
-    firing_servo.write(0);
+    firing_servo.write(100);
+    delay(500);
+    firing_servo.write(170);
 
     current_set_pressure = 0;
     should_shoot = false;

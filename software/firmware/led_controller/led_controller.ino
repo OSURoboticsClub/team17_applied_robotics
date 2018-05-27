@@ -11,7 +11,7 @@ const int led_pwm_pin = 6;
 const int num_power_status_leds = 69;
 CRGB power_status_leds[num_power_status_leds];
 
-const int num_general_status_leds = 23;
+const int num_general_status_leds = 18;
 CRGB general_status_leds[num_general_status_leds];
 
 char read_buffer[1500];

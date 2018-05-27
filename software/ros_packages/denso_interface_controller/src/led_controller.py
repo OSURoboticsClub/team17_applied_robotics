@@ -43,10 +43,19 @@ class InterfaceController(object):
 
         self.command_queue = []
 
+        temp_arary = []
+        for _ in range(18):
+            temp_arary.append(255)
+            temp_arary.append(165)
+            temp_arary.append(0)
+
+        self.command_queue.append(UInt8MultiArray(data=temp_arary))
+
         # ########### Start class ##########
         self.run()
 
     def run(self):
+
 
         while not rospy.is_shutdown():
             start_time = time()
