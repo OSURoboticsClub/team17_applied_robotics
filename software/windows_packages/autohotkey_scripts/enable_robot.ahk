@@ -24,12 +24,24 @@ run_button_y := 106
 clear_button_x := 88
 clear_button_y := 446
 
+should_exit = 0
+
 Loop 
 {
+	If (should_exit)
+	{
+	ExitApp
+	}
+	
 	IfWinNotExist, RobMaster
 	{
 		Run, C:\ORiN2\CAO\ProviderLib\DENSO\NetwoRC\Bin\RobMaster.exe
-		Sleep, 250
+		Sleep, 3000
+	}
+	
+	IfWinExist, RobMaster
+	{
+		WinActivate
 	}
 	
 	IfWinActive, RobMaster
@@ -66,4 +78,10 @@ Loop
 	
 	Sleep, 100
 }
+
+^q::
+should_exit = 1
+return
+
+Return
 
