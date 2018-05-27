@@ -45,9 +45,9 @@ class InterfaceController(object):
 
         temp_arary = []
         for _ in range(18):
-            temp_arary.append(255)
-            temp_arary.append(165)
-            temp_arary.append(0)
+            temp_arary.append(chr(255))
+            temp_arary.append(chr(165))
+            temp_arary.append(chr(0))
 
         self.command_queue.append(UInt8MultiArray(data=temp_arary))
 
