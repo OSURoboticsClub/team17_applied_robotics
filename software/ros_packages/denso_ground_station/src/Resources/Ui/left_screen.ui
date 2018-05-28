@@ -1138,6 +1138,13 @@ Detected</string>
               </property>
              </widget>
             </item>
+            <item row="3" column="1">
+             <widget class="QCheckBox" name="friendly_pressure_maintain_checkbox">
+              <property name="text">
+               <string>Continuous Pressure Maintain</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -1236,6 +1243,13 @@ Detected</string>
              <widget class="QPushButton" name="run_adversary_pushbutton">
               <property name="text">
                <string>RUN ADVERSARY</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QCheckBox" name="adversary_pressure_maintain_checkbox">
+              <property name="text">
+               <string>Continuous Pressure Maintain</string>
               </property>
              </widget>
             </item>

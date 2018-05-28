@@ -5,6 +5,7 @@ import rospy
 from PyQt5 import QtWidgets, QtCore, QtTest
 import paramiko
 import random
+import Resources.definitions as definitions
 from denso_master.msg import DensoStatusMessage
 from denso_interface_controller.msg import InterfaceStatusMessage, InterfaceControlMessage
 from std_msgs.msg import UInt8, Bool, Float32MultiArray, UInt8MultiArray
@@ -19,18 +20,6 @@ DENSO_ABSOLUTE_JOINTS_TOPIC_NAME = "/denso_control/absolute_joints"
 DENSO_INTERFACE_CONTROLLER_STATUS = "/denso_interface_controller/status"
 DENSO_INTERFACE_CONTROLLER_CONTROL = "/denso_interface_controller/control"
 DENSO_LED_CONTROLLER_CONTROL = "/denso_led_controller/control"
-
-FIRE_JOINT_POSITIONS = (0, -30, 135, 0, 29, -5)
-CATCH_JOINT_POSITIONS = (0, -95, 96, 0, 90, -5)
-
-CATCH_JOINT_POSITIONS_MESSAGE = Float32MultiArray(data=CATCH_JOINT_POSITIONS)
-FIRE_JOINT_POSITIONS_MESSAGE = Float32MultiArray(data=FIRE_JOINT_POSITIONS)
-
-ADVERSARY_RANDOM_J1_MIN = -35
-ADVERSARY_RANDOM_J1_MAX = 35
-
-ADVERSARY_RANDOM_J5_MIN = 15
-ADVERSARY_RANDOM_J5_MAX = 45
 
 ACCESS_POINT_IP = "192.168.1.14"
 ACCESS_POINT_USER = "denso"
@@ -240,10 +229,10 @@ class SensorCore(QtCore.QThread):
         self.speed_publisher.publish(self.arm_set_speed_spinbox.value())
 
     def on_catch_pressed__slot(self):
-        self.abs_joints_publisher.publish(CATCH_JOINT_POSITIONS_MESSAGE)
+        self.abs_joints_publisher.publish(definitions.CATCH_JOINT_POSITIONS_MESSAGE)
 
     def on_fire_pressed__slot(self):
-        self.abs_joints_publisher.publish(FIRE_JOINT_POSITIONS_MESSAGE)
+        self.abs_joints_publisher.publish(definitions.FIRE_JOINT_POSITIONS_MESSAGE)
 
     def on_adversary_demo_button_pressed__slot(self):
 
@@ -252,10 +241,10 @@ class SensorCore(QtCore.QThread):
         for i in range(num_fakeouts):
             message = Float32MultiArray()
 
-            rand_j1 = random.randint(ADVERSARY_RANDOM_J1_MIN, ADVERSARY_RANDOM_J1_MAX)
-            rand_j5 = random.randint(ADVERSARY_RANDOM_J5_MIN, ADVERSARY_RANDOM_J5_MAX)
+            rand_j1 = random.randint(definitions.ADVERSARY_RANDOM_J1_MIN, definitions.ADVERSARY_RANDOM_J1_MAX)
+            rand_j5 = random.randint(definitions.ADVERSARY_RANDOM_J5_MIN, definitions.ADVERSARY_RANDOM_J5_MAX)
 
-            fire_message = list(FIRE_JOINT_POSITIONS)
+            fire_message = list(definitions.FIRE_JOINT_POSITIONS)
             fire_message[0] = rand_j1
             fire_message[4] = rand_j5
 
