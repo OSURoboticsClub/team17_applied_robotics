@@ -21,6 +21,7 @@ DENSO_LED_CONTROLLER_CONTROL = "/denso_led_controller/control"
 COLOR_BLUE = (0, 0, 255)
 COLOR_RED = (255, 0, 0)
 COLOR_YELLOW = (255, 255, 0)
+COLOR_BLACK = (0, 0, 0)
 
 
 class GameManager(QtCore.QThread):
@@ -41,13 +42,13 @@ class GameManager(QtCore.QThread):
         self.friendly_degrees_from_45_spinbox = self.left_screen.friendly_degrees_from_45_spinbox  # type: QtWidgets.QSpinBox
         self.friendly_psi_spinbox = self.left_screen.friendly_psi_spinbox  # type: QtWidgets.QSpinBox
         self.run_friendly_pushbutton = self.left_screen.run_friendly_pushbutton  # type: QtWidgets.QSpinBox
-        self.friendly_pressure_maintain_checkbox = self.left_screen.friendly_pressure_maintain_checkbox  # type: QtWidgets.QCheckBox
+        self.friendly_continuous_run_checkbox = self.left_screen.friendly_continuous_run_checkbox  # type: QtWidgets.QCheckBox
 
         self.adversary_degrees_from_center_spinbox = self.left_screen.adversary_degrees_from_center_spinbox  # type: QtWidgets.QSpinBox
         self.adversary_degrees_from_45_spinbox = self.left_screen.adversary_degrees_from_45_spinbox  # type: QtWidgets.QSpinBox
         self.adversary_psi_spinbox = self.left_screen.adversary_psi_spinbox  # type: QtWidgets.QSpinBox
         self.run_adversary_pushbutton = self.left_screen.run_adversary_pushbutton  # type: QtWidgets.QSpinBox
-        self.adversary_pressure_maintain_checkbox = self.left_screen.friendly_pressure_maintain_checkbox  # type: QtWidgets.QCheckBox
+        self.adversary_continuous_run_checkbox = self.left_screen.adversary_continuous_run_checkbox  # type: QtWidgets.QCheckBox
 
         self.status_subscriber = rospy.Subscriber(DENSO_STATUS_TOPIC_NAME, DensoStatusMessage,
                                                   self.on_new_denso_status_update_received)
@@ -68,13 +69,15 @@ class GameManager(QtCore.QThread):
         self.denso_status = None  # type: DensoStatusMessage
         self.interface_controller_status = None
 
+        self.last_color = COLOR_YELLOW
+
     def run(self):
         while self.run_thread_flag:
             self.show_color(COLOR_BLUE)
 
             if self.run_friendly_flag:
                 self.run_friendly()
-                self.run_friendly_flag = False
+
             elif self.run_adversary_flag:
                 self.run_adversary()
                 self.run_adversary_flag = False
@@ -90,6 +93,7 @@ class GameManager(QtCore.QThread):
 
         # ##### Show Friendly Lights :) #####
         self.show_color(COLOR_YELLOW)
+        self.last_color = COLOR_YELLOW
 
         # ##### Charge tank and Tamp Ball #####
         self.interface_controller_message.set_pressure = psi + 5
@@ -100,6 +104,16 @@ class GameManager(QtCore.QThread):
         if psi > 5:
             while not self.interface_controller_status.compressor_on:
                 self.msleep(50)
+
+        # ##### Wait for ball to be detected #####
+        while not self.interface_controller_status.ball_detected:
+            if self.last_color == COLOR_YELLOW:
+                self.show_color(COLOR_BLACK)
+                self.last_color = COLOR_BLACK
+            else:
+                self.show_color(COLOR_YELLOW)
+                self.last_color = COLOR_YELLOW
+            self.msleep(20)
 
         # ##### Start at Fire Position #####
         self.move_arm_to_position_and_wait(definitions.FIRE_JOINT_POSITIONS_MESSAGE)
@@ -143,9 +157,9 @@ class GameManager(QtCore.QThread):
         self.interface_controller_publisher.publish(self.interface_controller_message)
         self.interface_controller_message.should_fire = 0
 
-        # ##### Check if we should maintain pressure and send command if necessary #####
+        # ##### Check if in continuous mode and continue if necessary #####
         self.msleep(500)
-        if self.friendly_pressure_maintain_checkbox.isChecked():
+        if self.friendly_continuous_run_checkbox.isChecked():
             self.interface_controller_message.set_pressure = psi
             self.interface_controller_publisher.publish(self.interface_controller_message)
 
@@ -158,6 +172,10 @@ class GameManager(QtCore.QThread):
 
         # ##### Move to Catch Position #####
         self.move_arm_to_position_and_wait(definitions.CATCH_JOINT_POSITIONS_MESSAGE)
+
+        # ##### Cancel run flag if not in continuous mode
+        if not self.friendly_continuous_run_checkbox.isChecked():
+            self.run_friendly_flag = False
 
     def run_adversary(self):
         degrees_from_center = self.adversary_degrees_from_center_spinbox.value()

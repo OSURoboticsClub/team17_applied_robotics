@@ -1139,9 +1139,9 @@ Detected</string>
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QCheckBox" name="friendly_pressure_maintain_checkbox">
+             <widget class="QCheckBox" name="friendly_continuous_run_checkbox">
               <property name="text">
-               <string>Continuous Pressure Maintain</string>
+               <string>Continuous Run</string>
               </property>
              </widget>
             </item>
@@ -1247,9 +1247,9 @@ Detected</string>
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QCheckBox" name="adversary_pressure_maintain_checkbox">
+             <widget class="QCheckBox" name="adversary_continuous_run_checkbox">
               <property name="text">
-               <string>Continuous Pressure Maintain</string>
+               <string>Continuous Run</string>
               </property>
              </widget>
             </item>
