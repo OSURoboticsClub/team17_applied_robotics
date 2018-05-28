@@ -14,7 +14,7 @@ from denso_interface_controller.msg import InterfaceControlMessage, InterfaceSta
 # Global Variables
 #####################################
 NODE_NAME = "denso_interface_controller"
-DEFAULT_HERTZ = 5
+DEFAULT_HERTZ = 30
 
 STATUSES_TOPIC = "denso_interface_controller/status"
 CONTROL_TOPIC = "denso_interface_controller/control"

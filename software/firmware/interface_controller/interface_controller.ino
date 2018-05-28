@@ -63,7 +63,7 @@ void loop() {
   tamp_if_needed();
   shoot_if_needed();
   print_state();
-  delay(250);
+  delay(50);
 }
 
 // Set Pressure|Tamp?|Shoot?|
