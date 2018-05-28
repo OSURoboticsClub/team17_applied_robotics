@@ -26,7 +26,7 @@ void setup() {
   FastLED.addLeds<WS2812, led_power_status_pin, GRB>(power_status_leds, num_power_status_leds).setCorrection(TypicalLEDStrip);
   FastLED.addLeds<WS2812, led_general_status_pin, GRB>(general_status_leds, num_general_status_leds).setCorrection(TypicalLEDStrip);
 
-  FastLED.setBrightness(15);
+  FastLED.setBrightness(40);
 
   pinMode(power_on_status_pin, INPUT);
   pinMode(led_pwm_pin, OUTPUT);
