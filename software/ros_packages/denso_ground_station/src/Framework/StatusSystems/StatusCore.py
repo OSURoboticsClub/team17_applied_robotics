@@ -256,6 +256,7 @@ class SensorCore(QtCore.QThread):
 
     def on_shutdown_systems_clicked__slot(self):
         self.ssh_client.exec_command("/home/denso/Github/team17_applied_robotics/software/environment/denso_shutdown.sh")
+        self.msleep(1000)
         QtTest.QTest.keyPress(self.left_screen, QtCore.Qt.Key_Q, QtCore.Qt.ControlModifier)
         QtTest.QTest.keyRelease(self.left_screen, QtCore.Qt.Key_Q, QtCore.Qt.ControlModifier)
 

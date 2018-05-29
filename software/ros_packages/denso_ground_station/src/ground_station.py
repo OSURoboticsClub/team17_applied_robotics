@@ -8,6 +8,7 @@ import signal
 import rospy
 import logging
 import qdarkstyle
+import time
 
 
 # Custom Imports
@@ -127,9 +128,22 @@ class GroundStation(QtCore.QObject):
     def on_exit_requested__slot(self):
         self.kill_threads_signal.emit()
 
-        # Wait for Threads
-        for thread in self.shared_objects["threaded_classes"]:
-            self.shared_objects["threaded_classes"][thread].wait()
+        start_time = time.time()
+        while True:
+            threads_running = False
+
+            for thread in self.shared_objects["threaded_classes"]:
+                if self.shared_objects["threaded_classes"][thread].isRunning():
+                    threads_running = True
+
+            if not threads_running:
+                break
+
+            if (time.time() - start_time) > 4:
+                for thread in self.shared_objects["threaded_classes"]:
+                    if self.shared_objects["threaded_classes"][thread].isRunning():
+                        self.shared_objects["threaded_classes"][thread].terminate()
+                break
 
         QtGui.QGuiApplication.exit()
 

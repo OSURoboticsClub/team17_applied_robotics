@@ -26,6 +26,8 @@ COLOR_PURPLE = (255, 0, 255)
 COLOR_ORANGE = (255, 165, 0)
 COLOR_BLACK = (0, 0, 0)
 
+AXES_DEGREES_ERROR = 0.01
+
 
 class GameManager(QtCore.QThread):
     # ########## create signals for slots ##########
@@ -68,6 +70,8 @@ class GameManager(QtCore.QThread):
         self.z3s7_pushbutton = self.left_screen.z3s7_pushbutton  # type: QtWidgets.QPushButton
         self.z3s8_pushbutton = self.left_screen.z3s8_pushbutton  # type: QtWidgets.QPushButton
         self.z3s9_pushbutton = self.left_screen.z3s9_pushbutton  # type: QtWidgets.QPushButton
+
+        self.global_offset_spinbox = self.left_screen.global_offset_spinbox  # type: QtWidgets.QSpinBox
 
         self.BUTTON_MAPPINGS_FRIENDLY = {
             self.z1s1_pushbutton: definitions.Z1_S1_FRIENDLY,
@@ -181,12 +185,11 @@ class GameManager(QtCore.QThread):
                     self.msleep(50)
 
         # ##### Adjust to fire angles if needed #####
-        if degrees_from_center != 0 or degrees_from_45 != 0:
-            fire_joint_positions = list(definitions.FIRE_JOINT_POSITIONS)
-            fire_joint_positions[0] -= degrees_from_center
-            fire_joint_positions[4] -= degrees_from_45
+        fire_joint_positions = list(definitions.FIRE_JOINT_POSITIONS)
+        fire_joint_positions[0] -= degrees_from_center - self.global_offset_spinbox.value()
+        fire_joint_positions[4] -= degrees_from_45
 
-            self.abs_joints_publisher.publish(Float32MultiArray(data=tuple(fire_joint_positions)))
+        self.abs_joints_publisher.publish(Float32MultiArray(data=tuple(fire_joint_positions)))
 
         # ##### Wait for compressor to finish building pressure #####
         while self.interface_controller_status.compressor_on:
@@ -294,16 +297,15 @@ class GameManager(QtCore.QThread):
                     self.msleep(50)
 
         # ##### Adjust to fire angles if needed #####
-        if degrees_from_center != 0 or degrees_from_45 != 0:
-            fire_joint_positions = list(definitions.FIRE_JOINT_POSITIONS)
-            fire_joint_positions[0] -= degrees_from_center
-            fire_joint_positions[4] -= degrees_from_45
+        fire_joint_positions = list(definitions.FIRE_JOINT_POSITIONS)
+        fire_joint_positions[0] -= degrees_from_center - self.global_offset_spinbox.value()
+        fire_joint_positions[4] = random.randint(definitions.ADVERSARY_RANDOM_J5_MIN, definitions.ADVERSARY_RANDOM_J5_MAX)
 
-            self.abs_joints_publisher.publish(Float32MultiArray(data=tuple(fire_joint_positions)))
+        self.abs_joints_publisher.publish(Float32MultiArray(data=tuple(fire_joint_positions)))
 
         # ##### Wait for compressor to finish building pressure #####
         while self.interface_controller_status.compressor_on:
-            self.msleep(100)
+            self.move_arm_random_and_wait()
 
         # ##### Preparation for firing #####
         self.interface_controller_message.should_fire = 1
@@ -314,8 +316,11 @@ class GameManager(QtCore.QThread):
 
         last_time = time.time()
         num_seconds = 3
-        fakeout_time = random.randint(250, num_seconds * 1000) / 1000.0
+        fakeout_time = random.randint(500, num_seconds * 1000) / 1000.0
         current_time = time.time() - last_time
+
+        has_fired = False
+
         print fakeout_time
         while current_time < num_seconds:
             values = []
@@ -334,11 +339,18 @@ class GameManager(QtCore.QThread):
             self.led_controller_publisher.publish(message)
 
             if (time.time() - last_time) > fakeout_time:
-                self.move_arm_to_position_and_wait(self.get_random_fire_message())
+                self.move_arm_to_position_and_wait(self.get_adversary_fire_message())
                 self.interface_controller_publisher.publish(self.interface_controller_message)
+                has_fired = True
                 break
-            self.msleep(random.randint(1, 1000))
+            else:
+                self.move_arm_random_and_wait()
+                self.msleep(random.randint(1, 500))
             current_time = time.time() - last_time
+
+        if not has_fired:
+            self.move_arm_to_position_and_wait(self.get_adversary_fire_message())
+            self.interface_controller_publisher.publish(self.interface_controller_message)
 
         self.show_color(COLOR_RED)
 
@@ -364,110 +376,50 @@ class GameManager(QtCore.QThread):
         # ##### Cancel run flag if not in continuous mode
         if not self.adversary_continuous_run_checkbox.isChecked():
             self.run_adversary_flag = False
-        # degrees_from_center = self.adversary_degrees_from_center_spinbox.value()
-        # degrees_from_45 = self.adversary_degrees_from_45_spinbox.value()
-        # psi = self.adversary_psi_spinbox.value()
-        #
-        # # ##### Show Friendly Lights :) #####
-        # message = UInt8MultiArray()
-        # values = []
-        # for _ in range(18):
-        #     values.append(255)
-        #     values.append(255)
-        #     values.append(0)
-        # message.data = values
-        #
-        # self.led_controller_publisher.publish(message)
-        #
-        # # ##### Charge tank and Tamp Ball #####
-        # self.interface_controller_message.set_pressure = psi + 5
-        # # self.interface_controller_message.should_tamp = 1
-        # self.interface_controller_publisher.publish(self.interface_controller_message)
-        # self.interface_controller_message.should_tamp = 0
-        #
-        # # ##### Wait until feedback says tank is charging #####
-        # if psi > 5:
-        #     while not self.interface_controller_status.compressor_on:
-        #         self.msleep(50)
-        #
-        # # ##### Start at Fire Position #####
-        # self.abs_joints_publisher.publish(definitions.FIRE_JOINT_POSITIONS_MESSAGE)
-        #
-        # # ##### Adjust to fire angles #####
-        # fire_joint_positions = list(definitions.FIRE_JOINT_POSITIONS)
-        # fire_joint_positions[0] -= degrees_from_center
-        # fire_joint_positions[4] -= degrees_from_45
-        #
-        # self.abs_joints_publisher.publish(Float32MultiArray(data=tuple(fire_joint_positions)))
-        #
-        # # ##### Wait for compressor to finish building pressure #####
-        # while self.interface_controller_status.compressor_on:
-        #     print self.interface_controller_status
-        #     self.msleep(100)
-        #
-        # # ##### Countdown before fire #####
-        # for t in range(3):
-        #     values = []
-        #     for i in range(18):
-        #         if i > (float(3 - t) / 3) * 18:
-        #             values.append(0)
-        #             values.append(0)
-        #             values.append(0)
-        #         else:
-        #             values.append(0)
-        #             values.append(255)
-        #             values.append(0)
-        #
-        #     message.data = values
-        #
-        #     self.led_controller_publisher.publish(message)
-        #     self.msleep(1000)
-        #
-        # # ##### Fakeout #####
-        # message = Float32MultiArray()
-        #
-        # rand_j1 = random.randint(definitions.ADVERSARY_RANDOM_J1_MIN, definitions.ADVERSARY_RANDOM_J1_MAX)
-        # rand_j5 = random.randint(definitions.ADVERSARY_RANDOM_J5_MIN, definitions.ADVERSARY_RANDOM_J5_MAX)
-        #
-        # fire_message = list(definitions.FIRE_JOINT_POSITIONS)
-        # fire_message[0] = rand_j1
-        # fire_message[4] = rand_j5
-        #
-        # message.data = tuple(fire_message)
-        #
-        # self.abs_joints_publisher.publish(message)
-        #
-        # # ##### Final LED FOR FIRE #####
-        # message = UInt8MultiArray()
-        # values = []
-        # for _ in range(18):
-        #     values.append(255)
-        #     values.append(0)
-        #     values.append(0)
-        # message.data = values
-        #
-        # self.led_controller_publisher.publish(message)
-        #
-        # # ##### Purposeful bad timing #####
-        # self.msleep(random.randint(500, 3000))
-        #
-        # # ##### Fire! #####
-        # self.interface_controller_message.should_fire = 1
-        # self.interface_controller_message.set_pressure = 0
-        # self.interface_controller_publisher.publish(self.interface_controller_message)
-        # self.interface_controller_message.should_fire = 0
-        #
-        # # ##### Wait before moving #####
-        # self.msleep(1000)
-        #
-        # # ##### Move to Catch Position #####
-        # self.abs_joints_publisher.publish(definitions.CATCH_JOINT_POSITIONS_MESSAGE)
 
-    def get_random_fire_message(self):
+    def arm_arrived_at_position(self, desired_position):
+        if not self.denso_status:
+            return False
+
+        joint_positions = self.denso_status.joints
+
+        within_error = True
+
+        for i in range(len(joint_positions)):
+            if not (abs(joint_positions[i] - desired_position[i]) < AXES_DEGREES_ERROR):
+                within_error = False
+
+        return within_error
+
+    def move_arm_random_and_wait(self):
         message = Float32MultiArray()
-
         rand_j1 = random.randint(definitions.ADVERSARY_RANDOM_J1_MIN, definitions.ADVERSARY_RANDOM_J1_MAX)
         rand_j5 = random.randint(definitions.ADVERSARY_RANDOM_J5_MIN, definitions.ADVERSARY_RANDOM_J5_MAX)
+
+        fire_message = list(definitions.FIRE_JOINT_POSITIONS)
+        fire_message[0] = rand_j1
+        fire_message[4] = rand_j5
+
+        message.data = tuple(fire_message)
+
+        self.move_arm_to_position_and_wait(message)
+
+    def get_adversary_fire_message(self):
+        degrees_from_center = self.adversary_degrees_from_center_spinbox.value()
+        degrees_from_45 = self.adversary_degrees_from_45_spinbox.value()
+
+        fire_joint_positions = list(definitions.FIRE_JOINT_POSITIONS)
+
+        message = Float32MultiArray()
+
+        if degrees_from_center >= 0:
+            rand_j1 = 2 - self.global_offset_spinbox.value()
+        else:
+            rand_j1 = -2 - self.global_offset_spinbox.value()
+
+        print rand_j1
+
+        rand_j5 = fire_joint_positions[4] - degrees_from_45
 
         fire_message = list(definitions.FIRE_JOINT_POSITIONS)
         fire_message[0] = rand_j1
@@ -490,13 +442,10 @@ class GameManager(QtCore.QThread):
 
     def move_arm_to_position_and_wait(self, message):
         self.abs_joints_publisher.publish(message)
-        while not self.denso_status.arm_busy:
+        while not self.arm_arrived_at_position(message.data):
             self.msleep(10)
 
-        while self.denso_status.arm_busy:
-            self.msleep(10)
-
-    def on_zone_pushbutton_clicked__slot(self, event):
+    def on_zone_pushbutton_clicked__slot(self):
         event_sender = self.sender()
 
         new_zone_friendly = self.BUTTON_MAPPINGS_FRIENDLY[event_sender]
