@@ -413,9 +413,9 @@ class GameManager(QtCore.QThread):
         message = Float32MultiArray()
 
         if degrees_from_center >= 0:
-            rand_j1 = 2 - self.global_offset_spinbox.value()
+            rand_j1 = 3 - self.global_offset_spinbox.value()
         else:
-            rand_j1 = -2 - self.global_offset_spinbox.value()
+            rand_j1 = -3 - self.global_offset_spinbox.value()
 
         print rand_j1
 

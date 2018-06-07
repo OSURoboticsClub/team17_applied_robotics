@@ -24,14 +24,14 @@ Z3_S7_FRIENDLY = {"degrees_from_center": -2, "degrees_from_45": -10, "psi": 35}
 Z3_S8_FRIENDLY = {"degrees_from_center": 4, "degrees_from_45": -10, "psi": 35}
 Z3_S9_FRIENDLY = {"degrees_from_center": 17, "degrees_from_45": -10, "psi": 35}
 
-Z1_S1_ADVERSARY = {"degrees_from_center": -10, "degrees_from_45": 0, "psi": 50}
-Z1_S2_ADVERSARY = {"degrees_from_center": 8, "degrees_from_45": 0, "psi": 50}
+Z1_S1_ADVERSARY = {"degrees_from_center": -10, "degrees_from_45": -10, "psi": 55}
+Z1_S2_ADVERSARY = {"degrees_from_center": 8, "degrees_from_45": -10, "psi": 55}
 
-Z2_S3_ADVERSARY = {"degrees_from_center": -14, "degrees_from_45": -5, "psi": 50}
-Z2_S4_ADVERSARY = {"degrees_from_center": 0, "degrees_from_45": -7, "psi": 50}
-Z2_S5_ADVERSARY = {"degrees_from_center": 16, "degrees_from_45": -5, "psi": 50}
+Z2_S3_ADVERSARY = {"degrees_from_center": -14, "degrees_from_45": -15, "psi": 55}
+Z2_S4_ADVERSARY = {"degrees_from_center": 0, "degrees_from_45": -15, "psi": 55}
+Z2_S5_ADVERSARY = {"degrees_from_center": 16, "degrees_from_45": -15, "psi": 55}
 
-Z3_S6_ADVERSARY = {"degrees_from_center": -10, "degrees_from_45": -10, "psi": 50}
-Z3_S7_ADVERSARY = {"degrees_from_center": -2, "degrees_from_45": -10, "psi": 50}
-Z3_S8_ADVERSARY = {"degrees_from_center": 4, "degrees_from_45": -10, "psi": 50}
-Z3_S9_ADVERSARY = {"degrees_from_center": 17, "degrees_from_45": -10, "psi": 50}
+Z3_S6_ADVERSARY = {"degrees_from_center": -10, "degrees_from_45": -15, "psi": 50}
+Z3_S7_ADVERSARY = {"degrees_from_center": -2, "degrees_from_45": -15, "psi": 50}
+Z3_S8_ADVERSARY = {"degrees_from_center": 4, "degrees_from_45": -15, "psi": 50}
+Z3_S9_ADVERSARY = {"degrees_from_center": 17, "degrees_from_45": -15, "psi": 50}
